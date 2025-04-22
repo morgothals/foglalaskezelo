@@ -2,9 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    //
+    use HasFactory;
+
+    protected $primaryKey = 'customer_id';
+
+    // Egy ügyfél több időpontot is foglalhat
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'customer_id', 'customer_id');
+    }
 }
