@@ -103,5 +103,19 @@ class DatabaseSeeder extends Seeder
             'stars'          => 5,
             'review'         => 'Imádom az új frizurámat!'
         ]);
+
+
+        Hairdresser::factory(5)->create()->each(function ($hairdresser) {
+            $services = Service::factory(2)->create();
+            $hairdresser->services()->attach($services->pluck('service_id'));
+
+            Rating::factory(2)->create([
+                'hairdresser_id' => $hairdresser->hairdresser_id
+            ]);
+        });
+
+        Customer::factory(10)->create();
+
+        Appointment::factory(10)->create();
     }
 }
