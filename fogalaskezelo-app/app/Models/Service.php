@@ -14,7 +14,8 @@ class Service extends Model
     // Egy szolgáltatást több fodrász is kínálhat
     public function hairdressers()
     {
-        return $this->belongsToMany(Hairdresser::class, 'hairdresser_services', 'service_id', 'hairdresser_id');
+        return $this->belongsToMany(Hairdresser::class, 'hairdresser_services', 'service_id', 'hairdresser_id')
+            ->withPivot('price');
     }
 
     // Egy szolgáltatást több foglalásban is lefoglalhatnak

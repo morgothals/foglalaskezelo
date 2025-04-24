@@ -3,6 +3,7 @@
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('home', function () {
@@ -12,6 +13,14 @@ Route::get('home', function () {
 
 Route::get('/', function () {
     return view('home');
+});
+
+Route::get('/foglalasok', function () {
+    return view('booking');
+});
+
+Route::get('/idopontfoglalas', function () {
+    return view('appointment');
 });
 
 Route::view('dashboard', 'dashboard')

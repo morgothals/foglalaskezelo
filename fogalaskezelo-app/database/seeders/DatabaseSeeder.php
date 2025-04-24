@@ -27,9 +27,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Fodrászok
-        $hairdresser1 = Hairdresser::create(['name' => 'Kovács László']);
-        $hairdresser2 = Hairdresser::create(['name' => 'Szabó Anna']);
-        $hairdresser3 = Hairdresser::create(['name' => 'Nagy Péter']);
+        $hairdresser1 = Hairdresser::create(['name' => 'Kovács László', 'profile_image' => 'images/hairdressers/Zbisko_Adam.jpeg']);
+        $hairdresser2 = Hairdresser::create(['name' => 'Szabó Anna', 'profile_image' => 'images/hairdressers/Simon_Bertold.jpeg']);
+        $hairdresser3 = Hairdresser::create(['name' => 'Nagy Péter', 'profile_image' => 'images/hairdressers/Bartfai_Zsombor.jpeg']);
 
         // Szolgáltatások
         $service1 = Service::create(['name' => 'Hajvágás', 'price' => 5000]);
@@ -37,9 +37,16 @@ class DatabaseSeeder extends Seeder
         $service3 = Service::create(['name' => 'Balayage', 'price' => 12000]);
 
         // Kapcsolatok fodrászok és szolgáltatások között
-        $hairdresser1->services()->attach([$service1->service_id, $service2->service_id]);
-        $hairdresser2->services()->attach([$service1->service_id, $service3->service_id]);
-        $hairdresser3->services()->attach([$service2->service_id, $service3->service_id]);
+
+
+        $hairdresser1->services()->attach($service1->service_id, ['price' => 5400]);
+        $hairdresser1->services()->attach($service2->service_id, ['price' => 8200]);
+
+        $hairdresser2->services()->attach($service1->service_id, ['price' => 5000]);
+        $hairdresser2->services()->attach($service3->service_id, ['price' => 10500]);
+
+        $hairdresser3->services()->attach($service2->service_id, ['price' => 7900]);
+        $hairdresser3->services()->attach($service3->service_id, ['price' => 12000]);
 
         // Ügyfelek
         $customer1 = Customer::create([
@@ -105,10 +112,17 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-        Hairdresser::factory(5)->create()->each(function ($hairdresser) {
+        Hairdresser::factory(1)->create()->each(function ($hairdresser) {
             $services = Service::factory(2)->create();
-            $hairdresser->services()->attach($services->pluck('service_id'));
 
+            // Minden szolgáltatásra egyedi árat rendelünk hozzá a pivot táblában
+            foreach ($services as $service) {
+                $hairdresser->services()->attach($service->service_id, [
+                    'price' => fake()->numberBetween(3000, 10000),
+                ]);
+            }
+
+            // Értékelések hozzáadása
             Rating::factory(2)->create([
                 'hairdresser_id' => $hairdresser->hairdresser_id
             ]);
@@ -116,6 +130,6 @@ class DatabaseSeeder extends Seeder
 
         Customer::factory(10)->create();
 
-        Appointment::factory(10)->create();
+        Appointment::factory(0)->create();
     }
 }

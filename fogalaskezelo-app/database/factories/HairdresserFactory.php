@@ -18,6 +18,7 @@ class HairdresserFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
+
         ];
     }
 }
