@@ -4,6 +4,9 @@ namespace App\Livewire\Booking;
 
 use App\Models\Service;
 use App\Models\Hairdresser;
+use App\Models\Appointment;
+use App\Models\AvailabilitySlot;
+use App\Models\Customer;
 use Livewire\Component;
 
 class Stepper extends Component
@@ -14,54 +17,100 @@ class Stepper extends Component
     public $selectedService = null;
     public $selectedHairdresser = null;
 
+    public $availabilitySlots = [];
+    public $selectedSlot = null;
+
     public $clientName = '';
     public $clientEmail = '';
     public $clientPhone = '';
     public $acceptPolicy = false;
     public $saveDetails = false;
 
+    // Új: a siker‐üzenetet itt tároljuk
+    public $successMessage = '';
+
+    protected $rules = [
+        'clientName'   => 'required|string|max:255',
+        'clientEmail'  => 'required|email',
+        'clientPhone'  => 'required|string|max:20',
+        'acceptPolicy' => 'accepted',
+    ];
+
     public function mount()
     {
         $this->services = Service::all();
     }
 
-    public function selectService($serviceId)
+    public function onServiceSelected($serviceId)
     {
         $this->selectedService = $serviceId;
         $this->hairdressers = Service::find($serviceId)?->hairdressers ?? [];
         $this->selectedHairdresser = null;
+        $this->availabilitySlots = [];
+        $this->selectedSlot = null;
+        $this->successMessage = '';
     }
 
-    public function selectHairdresser($hairdresserId)
+    public function onHairdresserSelected($hairdresserId)
     {
         $this->selectedHairdresser = $hairdresserId;
+        $hairdresser = Hairdresser::find($hairdresserId);
+
+        $this->availabilitySlots = $hairdresser
+            ? $hairdresser->availabilitySlots()->orderBy('start_time')->get()
+            : [];
+
+        $this->selectedSlot = null;
+        $this->successMessage = '';
     }
 
-    public function onServiceSelected($value)
+    public function onSlotSelected($slotId)
     {
-        $this->selectedService = $value;
-        $this->hairdressers = Service::find($value)?->hairdressers ?? [];
-        $this->selectedHairdresser = null;
-    }
-
-    public function onHairdresserSelected($value)
-    {
-        $this->selectedHairdresser = $value;
+        $this->selectedSlot = $slotId;
+        $this->successMessage = '';
     }
 
     public function submitAppointment()
     {
-        $this->validate([
-            'clientName' => 'required|string|max:255',
-            'clientEmail' => 'required|email',
-            'clientPhone' => 'required|string|max:20',
-            'acceptPolicy' => 'accepted',
+        $this->validate();
+
+        // 1) Ügyfél mentése
+        $customer = Customer::create([
+            'name'         => $this->clientName,
+            'email'        => $this->clientEmail,
+            'phone_number' => $this->clientPhone,
         ]);
 
-        // Itt lehet menteni az adatokat az adatbázisba, például az Appointments táblába
+        // 2) Appointment létrehozása
+        $slot = AvailabilitySlot::findOrFail($this->selectedSlot);
 
-        session()->flash('success', 'A foglalásod sikeresen rögzítve lett!');
-        $this->reset(); // mezők törlése
+        Appointment::create([
+            'customer_id'      => $customer->customer_id,
+            'hairdresser_id'   => $this->selectedHairdresser,
+            'service_id'       => $this->selectedService,
+            'appointment_time' => $slot->start_time,
+            'status'           => 'confirmed',
+        ]);
+
+        // 3) Lefoglalt sáv törlése
+        $slot->delete();
+
+        // 4) Beállítjuk a siker-üzenetet
+        $this->successMessage = 'A foglalásod sikeresen rögzítve lett!';
+
+        // 5) Űrlap törlése, de a siker-üzenet marad
+        $this->reset([
+            'selectedService',
+            'selectedHairdresser',
+            'availabilitySlots',
+            'selectedSlot',
+            'clientName',
+            'clientEmail',
+            'clientPhone',
+            'acceptPolicy',
+            'saveDetails',
+        ]);
+        $this->mount();
     }
 
     public function render()

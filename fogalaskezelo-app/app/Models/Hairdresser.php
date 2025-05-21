@@ -9,23 +9,33 @@ class Hairdresser extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'hairdresser_id'; // mert nem "id" a kulcs neve
+    protected $primaryKey = 'hairdresser_id';
 
-    // Egy fodrásznak több szolgáltatása lehet
-    public function services()
+    // Új: kapcsolat a felhasználóval
+    public function user()
     {
-        return $this->belongsToMany(Service::class, 'hairdresser_services', 'hairdresser_id', 'service_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    // Egy fodrásznak több értékelése lehet
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'hairdresser_services', 'hairdresser_id', 'service_id')
+            ->withPivot('price');
+    }
+
     public function ratings()
     {
         return $this->hasMany(Rating::class, 'hairdresser_id', 'hairdresser_id');
     }
 
-    // Egy fodrásznak több időpontfoglalása lehet
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'hairdresser_id', 'hairdresser_id');
+    }
+
+    // Új: elérhetőségi sávok reláció
+    public function availabilitySlots()
+    {
+        return $this->hasMany(AvailabilitySlot::class, 'hairdresser_id', 'hairdresser_id');
     }
 }

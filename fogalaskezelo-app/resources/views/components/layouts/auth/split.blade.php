@@ -15,7 +15,7 @@
                 </a>
 
                 @php
-                    [$message, $author] = str(Illuminate\Foundation\Inspiring::quotes()->random())->explode('-');
+[$message, $author] = str(Illuminate\Foundation\Inspiring::quotes()->random())->explode('-');
                 @endphp
 
                 <div class="relative z-20 mt-auto">
@@ -38,6 +38,7 @@
                 </div>
             </div>
         </div>
-        @fluxScripts
+        @livewireScripts
+        <script src="https://unpkg.com/alpinejs" defer></script>
     </body>
 </html>

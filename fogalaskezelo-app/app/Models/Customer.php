@@ -11,6 +11,12 @@ class Customer extends Model
 
     protected $primaryKey = 'customer_id';
 
+    protected $fillable = [
+        'name',
+        'email',
+        'phone_number',
+    ];
+
     // Egy ügyfél több időpontot is foglalhat
     public function appointments()
     {

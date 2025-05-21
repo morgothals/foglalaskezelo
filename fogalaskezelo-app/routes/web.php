@@ -23,6 +23,15 @@ Route::get('/idopontfoglalas', function () {
     return view('appointment');
 });
 
+Route::get('/debug-can', function () {
+    $user = auth()->user();
+    return [
+        'role'  => $user->role,
+        'can'   => $user->can('access-admin'),
+        'gates' => Gate::abilities(), // ha szeretnéd az összes regisztrált képességet
+    ];
+})->middleware('auth');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -35,4 +44,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 });
 
-require __DIR__.'/auth.php';
+Route::middleware(['auth', 'can:access-admin'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/', \App\Http\Controllers\Admin\DashboardController::class)->name('admin.dashboard');
+        // Livewire-komponens a sávok menedzseléséhez
+        Route::get('availability', \App\Livewire\Admin\AvailabilityManager::class)
+            ->name('admin.availability.index');
+    });
+
+
+
+
+require __DIR__ . '/auth.php';

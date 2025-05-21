@@ -11,6 +11,15 @@ class Appointment extends Model
 
     protected $primaryKey = 'appointment_id';
 
+    protected $fillable = [
+        'customer_id',
+        'hairdresser_id',
+        'service_id',
+        'appointment_time',
+        'status',
+    ];
+
+
     // Egy foglalás egy ügyfélhez tartozik
     public function customer()
     {
