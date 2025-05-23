@@ -14,3 +14,7 @@ php artisan db:seed
 
 Mind3 egyben:
 php artisan migrate:fresh --seed
+
+
+
+küldeni email a foglalásról (mail trap)

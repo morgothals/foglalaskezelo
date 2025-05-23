@@ -18,7 +18,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Csak fodrászoknak engedélyezzük az /admin felületet
+       
         Gate::define('access-admin', fn($user) => $user->role === 'hairdresser');
     }
 }

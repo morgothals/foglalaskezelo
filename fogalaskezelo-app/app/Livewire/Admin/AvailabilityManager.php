@@ -2,9 +2,14 @@
 
 namespace App\Livewire\Admin;
 
+
 use Livewire\Component;
 use App\Models\AvailabilitySlot;
 use App\Models\Appointment;
+use App\Helpers\IntelephenseHelpers\Guard;
+use App\Helpers\IntelephenseHelpers\Authenticatable;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class AvailabilityManager extends Component
@@ -22,14 +27,14 @@ class AvailabilityManager extends Component
     public function render()
     {
         // Elérhetőségi sávok
-        $slots = auth()->user()
+        $slots = auth('web')->user()
             ->hairdresser
             ->availabilitySlots()
             ->orderBy('start_time')
             ->get();
 
         // Foglalások
-        $appointments = auth()->user()
+        $appointments = auth('web')->user()
             ->hairdresser
             ->appointments()
             ->with(['customer', 'service'])
@@ -51,7 +56,7 @@ class AvailabilityManager extends Component
 
         while ($start->lt($end)) {
             AvailabilitySlot::create([
-                'hairdresser_id' => auth()->user()->hairdresser->hairdresser_id,
+                'hairdresser_id' => auth('web')->user()->hairdresser->hairdresser_id,
                 'start_time'     => $start,
                 'end_time'       => $start->copy()->addMinutes(45),
             ]);

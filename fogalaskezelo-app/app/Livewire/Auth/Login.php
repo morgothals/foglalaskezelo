@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-#[Layout('components.layouts.auth')]
+#[Layout('components.layouts.auth.simple')]
 class Login extends Component
 {
     #[Validate('required|string|email')]
@@ -26,7 +26,7 @@ class Login extends Component
     /**
      * Handle an incoming authentication request.
      */
-    public function login(): void
+    public function login()
     {
         $this->validate();
 
@@ -44,10 +44,14 @@ class Login extends Component
         Session::regenerate();
 
         $redirectTo = Auth::user()->role === 'hairdresser'
-        ? route('admin.dashboard')
+        ? route('admin.dashboard', absolute: false)
         : route('dashboard', absolute: false);
 
-    $this->redirectIntended(default: $redirectTo, navigate: true);
+
+
+
+    //return $this->redirectIntended(default: $redirectTo, navigate: true);
+    return redirect()->to($redirectTo);
     }
 
     /**
