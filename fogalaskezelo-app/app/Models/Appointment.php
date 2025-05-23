@@ -10,6 +10,9 @@ class Appointment extends Model
     use HasFactory;
 
     protected $primaryKey = 'appointment_id';
+    protected $casts = [
+        'appointment_time' => 'datetime',
+    ];
 
     protected $fillable = [
         'customer_id',

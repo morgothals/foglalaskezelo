@@ -7,7 +7,7 @@ use App\Livewire\Admin\Dashboard;
 use Illuminate\Support\Facades\Route;
 
 Route::get('home', function () {
-    return view('welcome');
+    return view('home');
 })->name('home');
 
 Route::get('/', function () {

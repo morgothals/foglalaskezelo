@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Booking;
 
-use App\Models\Service;
-use App\Models\Hairdresser;
+use App\Mail\BookingConfirmation;
 use App\Models\Appointment;
 use App\Models\AvailabilitySlot;
 use App\Models\Customer;
+use App\Models\Hairdresser;
+use App\Models\Service;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
 class Stepper extends Component
@@ -26,7 +28,6 @@ class Stepper extends Component
     public $acceptPolicy = false;
     public $saveDetails = false;
 
-    // Új: a siker‐üzenetet itt tároljuk
     public $successMessage = '';
 
     protected $rules = [
@@ -55,11 +56,9 @@ class Stepper extends Component
     {
         $this->selectedHairdresser = $hairdresserId;
         $hairdresser = Hairdresser::find($hairdresserId);
-
         $this->availabilitySlots = $hairdresser
             ? $hairdresser->availabilitySlots()->orderBy('start_time')->get()
             : [];
-
         $this->selectedSlot = null;
         $this->successMessage = '';
     }
@@ -74,17 +73,16 @@ class Stepper extends Component
     {
         $this->validate();
 
-        // 1) Ügyfél mentése
-        $customer = Customer::create([
-            'name'         => $this->clientName,
-            'email'        => $this->clientEmail,
-            'phone_number' => $this->clientPhone,
-        ]);
+        // Ügyfél lekérése vagy létrehozása e-mail alapján
+        $customer = Customer::firstOrCreate(
+            ['email' => $this->clientEmail],
+            ['name' => $this->clientName, 'phone_number' => $this->clientPhone]
+        );
 
         // 2) Appointment létrehozása
         $slot = AvailabilitySlot::findOrFail($this->selectedSlot);
 
-        Appointment::create([
+        $appointment = Appointment::create([
             'customer_id'      => $customer->customer_id,
             'hairdresser_id'   => $this->selectedHairdresser,
             'service_id'       => $this->selectedService,
@@ -92,13 +90,29 @@ class Stepper extends Component
             'status'           => 'confirmed',
         ]);
 
-        // 3) Lefoglalt sáv törlése
+        // Lefoglalt sáv törlése
         $slot->delete();
 
-        // 4) Beállítjuk a siker-üzenetet
-        $this->successMessage = 'A foglalásod sikeresen rögzítve lett!';
+        //  Email küldése a kliensnek
+        $serviceName     = Service::find($this->selectedService)->name;
+        $hairdresserName = Hairdresser::find($this->selectedHairdresser)->name;
 
-        // 5) Űrlap törlése, de a siker-üzenet marad
+        $emailData = [
+            'clientName'      => $customer->name,
+            'date'            => $appointment->appointment_time->format('Y-m-d'),
+            'time'            => $appointment->appointment_time->format('H:i'),
+            'serviceName'     => $serviceName,
+            'hairdresserName' => $hairdresserName,
+            'notes'           => null,
+        ];
+
+        Mail::to($customer->email)
+            ->send(new BookingConfirmation($emailData));
+
+        //Siker-üzenet
+        $this->successMessage = 'A foglalásod sikeresen rögzítve lett, és megerősítő e-mailt küldtünk!';
+
+        //Űrlap törlése (de sikerüzenet megmarad)
         $this->reset([
             'selectedService',
             'selectedHairdresser',
@@ -111,6 +125,9 @@ class Stepper extends Component
             'saveDetails',
         ]);
         $this->mount();
+
+
+        $this->dispatch('scrollToTop');
     }
 
     public function render()
